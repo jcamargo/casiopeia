@@ -20,10 +20,10 @@
 
 import numpy as np
 
-from ..interfaces import casadi_interface as ci
-from discretization import Discretization
+from interfaces import casadi_interface as ci
+from discretization.discretization import Discretization
 
-from .. import inputchecks
+import inputchecks
 
 class ODEMultipleShooting(Discretization):
 
@@ -52,10 +52,10 @@ class ODEMultipleShooting(Discretization):
 
             self.optimization_variables["X"] = ci.mx_sym("X", self.system.nx, \
                 self.number_of_intervals + 1)
-        
+
 
         if self.system.neps_u != 0:
-                
+
             self.optimization_variables["EPS_U"] = \
                 ci.mx_sym("EPS_U", self.system.neps_u, self.number_of_intervals)
 
@@ -140,9 +140,9 @@ class ODEMultipleShooting(Discretization):
             ci.horzcat([self.optimization_variables["U"], \
                 self.optimization_variables["U"][:, -1]]),
             self.optimization_variables["Q"],
-            
+
             self.optimization_variables["X"],
-            
+
             ci.horzcat([self.optimization_variables["EPS_U"],
                 self.optimization_variables["EPS_U"][:,-1]]),
 
@@ -161,7 +161,7 @@ class ODEMultipleShooting(Discretization):
 
 
     def __init__(self, system, time_points):
-        
+
         super(ODEMultipleShooting, self).__init__(system, time_points)
 
         self.__discretize()

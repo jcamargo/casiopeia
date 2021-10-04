@@ -20,8 +20,8 @@
 
 from abc import ABCMeta, abstractmethod
 
-from ..interfaces import casadi_interface as ci
-from .. import inputchecks
+from interfaces import casadi_interface as ci
+import inputchecks
 
 class Discretization(object):
 

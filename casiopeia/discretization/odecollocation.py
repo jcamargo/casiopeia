@@ -20,10 +20,10 @@
 
 import numpy as np
 
-from ..interfaces import casadi_interface as ci
-from discretization import Discretization
+from interfaces import casadi_interface as ci
+from discretization.discretization import Discretization
 
-from .. import inputchecks
+import inputchecks
 
 class ODECollocation(Discretization):
 
@@ -31,7 +31,7 @@ class ODECollocation(Discretization):
     def number_of_controls(self):
 
         return self.number_of_intervals
-        
+
 
     def __set_collocation_settings(self, number_of_collocation_points, \
         collocation_scheme):
@@ -64,7 +64,7 @@ class ODECollocation(Discretization):
 
 
         if self.system.neps_u != 0:
-                
+
             self.optimization_variables["EPS_U"] = \
                 ci.mx_sym("EPS_U", self.system.neps_u, \
                 self.number_of_intervals)
@@ -79,7 +79,7 @@ class ODECollocation(Discretization):
             self.optimization_variables["Q"] = ci.mx_sym("Q", self.system.nq)
         else:
             self.optimization_variables["Q"] = ci.dmatrix(0, 1)
-        
+
 
     def __compute_collocation_time_points(self):
 
@@ -96,7 +96,7 @@ class ODECollocation(Discretization):
 
 
     def __compute_collocation_coefficients(self):
-    
+
         # Coefficients of the collocation equation
 
         self.__C = np.zeros((self.collocation_polynomial_degree + 1, \
@@ -116,30 +116,30 @@ class ODECollocation(Discretization):
 
             # Construct Lagrange polynomials to get the polynomial basis
             # at the collocation point
-            
+
             L = 1
-            
+
             for r in range(self.collocation_polynomial_degree + 1):
-            
+
                 if r != j:
-            
+
                     L *= (tau - self.collocation_points[r]) / \
                         (self.collocation_points[j] - \
                             self.collocation_points[r])
-    
+
 
             lfcn = ci.sx_function("lfcn", [tau],[L])
-          
+
             # Evaluate the polynomial at the final time to get the
             # coefficients of the continuity equation
 
             self.__D[j] = lfcn([1])
 
-            # Evaluate the time derivative of the polynomial at all 
+            # Evaluate the time derivative of the polynomial at all
             # collocation points to get the coefficients of the
             # collocation equation
-            
-            tfcn = lfcn.tangent()
+            tfcn = lfcn.jacobian()
+            # tfcn = lfcn.tangent()
 
             for r in range(self.collocation_polynomial_degree + 1):
 
@@ -178,7 +178,7 @@ class ODECollocation(Discretization):
                 sum([self.__C[r,j] * x[r*self.system.nx : (r+1)*self.system.nx] \
 
                     for r in range(self.collocation_polynomial_degree + 1)]) \
-                    
+
                         for j in range(1, self.collocation_polynomial_degree + 1)])
 
 
@@ -257,9 +257,9 @@ class ODECollocation(Discretization):
         measurement_function_input = [ \
 
             ci.horzcat([self.optimization_variables["U"], \
-                self.optimization_variables["U"][:, -1]]), 
+                self.optimization_variables["U"][:, -1]]),
             self.optimization_variables["Q"], \
-            
+
             self.optimization_variables["X"][:, \
                 :: (self.collocation_polynomial_degree + 1)],
 
